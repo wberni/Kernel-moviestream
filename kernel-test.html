@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kernel — Test (OMDb + Drive)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0E0B08; --bg-raised:#1A1512; --ink:#F2ECE0; --ink-dim:#B8A98F;
+  --accent:#D9A441; --accent-movie:#D9A441; --line: rgba(242,236,224,0.10);
+}
+*{ box-sizing:border-box; margin:0; padding:0; }
+body{ background:var(--bg); color:var(--ink); font-family:'Inter',sans-serif; min-height:100vh; }
+a{ color:inherit; text-decoration:none; } button{ font-family:inherit; cursor:pointer; }
+.poster-font{ font-family:'Anton', sans-serif; } .mono{ font-family:'Space Mono', monospace; }
+
+.kernel-loader{ position:fixed; inset:0; z-index:999; background:#0E0B08; display:flex; align-items:center; justify-content:center; flex-direction:column; gap:22px; transition:opacity .6s ease, visibility .6s ease; }
+.kernel-loader.hide{ opacity:0; visibility:hidden; pointer-events:none; }
+.kernel-iris{ width:96px; height:96px; }
+.kernel-wordmark{ font-family:'Anton',sans-serif; font-size:22px; letter-spacing:.5em; padding-left:.5em; opacity:0; animation:kernelWord .9s ease .5s forwards; }
+.kernel-status{ font-family:'Space Mono',monospace; font-size:10px; letter-spacing:.15em; color:var(--ink-dim); opacity:0; animation:kernelWord .9s ease .9s forwards; text-transform:uppercase; }
+@keyframes kernelWord{ to{ opacity:1; } }
+.iris-blade{ animation: irisOpen 1.1s cubic-bezier(.6,0,.3,1) forwards; }
+@keyframes irisOpen{ 0%{ transform:scale(1) rotate(0deg); opacity:1;} 70%{opacity:1;} 100%{ transform:scale(2.4) rotate(35deg); opacity:0; } }
+
+header.site{ position:sticky; top:0; z-index:50; display:flex; align-items:center; justify-content:space-between; padding:18px 44px; background:linear-gradient(180deg, rgba(14,11,8,.95), rgba(14,11,8,.6) 70%, transparent); backdrop-filter: blur(6px); }
+.brand{ display:flex; align-items:center; gap:12px; cursor:pointer; }
+.brand svg{ width:30px; height:30px; }
+.brand span{ font-family:'Anton', sans-serif; font-size:20px; letter-spacing:.28em; padding-left:.1em; }
+.demo-badge{ font-size:11px; color:var(--ink-dim); border:1px solid var(--line); padding:6px 12px; border-radius:20px; }
+
+.row{ margin-bottom:40px; } .row-head{ display:flex; align-items:baseline; gap:12px; padding:0 44px; margin-bottom:14px; }
+.row-head h2{ font-family:'Anton',sans-serif; font-size:19px; } .row-head .count{ font-size:11px; color:var(--ink-dim); }
+.row-track{ display:flex; gap:16px; overflow-x:auto; padding:6px 44px 18px; scrollbar-color: var(--accent) transparent; }
+.poster-card{ position:relative; flex:0 0 190px; aspect-ratio:2/3; border-radius:4px; overflow:hidden; border:1px solid var(--line); background:var(--bg-raised); transition: transform .25s ease, box-shadow .25s ease; }
+.poster-card:hover{ transform: translateY(-8px) scale(1.02); box-shadow:0 20px 38px rgba(0,0,0,.55); }
+.poster-card img{ width:100%; height:100%; object-fit:cover; display:block; }
+.poster-overlay{ position:absolute; inset:0; display:flex; flex-direction:column; justify-content:flex-end; padding:12px; background:linear-gradient(0deg, rgba(0,0,0,.88) 0%, transparent 55%); opacity:0; transition:opacity .2s ease; }
+.poster-card:hover .poster-overlay{ opacity:1; }
+.poster-overlay h3{ font-size:13px; font-weight:600; margin-bottom:2px; } .poster-overlay .meta{ font-size:10px; color:var(--accent); }
+.poster-play{ position:absolute; top:10px; right:10px; width:30px; height:30px; border-radius:50%; background:rgba(0,0,0,.55); border:1px solid rgba(255,255,255,.25); display:flex; align-items:center; justify-content:center; font-size:12px; color:#fff; opacity:0; transition:opacity .2s ease; }
+.poster-card:hover .poster-play{ opacity:1; }
+
+.omdb-tag{ position:absolute; top:10px; left:10px; background:rgba(0,0,0,.55); border:1px solid rgba(255,255,255,.2); color:var(--ink-dim); font-size:8px; font-weight:700; letter-spacing:.06em; padding:3px 7px; border-radius:3px; z-index:2; }
+
+footer.site{ padding:30px 44px; border-top:1px solid var(--line); display:flex; justify-content:space-between; color:var(--ink-dim); font-size:11px; }
+
+.back-link{ position:fixed; top:22px; left:30px; z-index:60; display:flex; align-items:center; gap:8px; font-size:12px; color:var(--ink); background:rgba(14,11,8,.55); border:1px solid var(--line); padding:8px 14px; border-radius:30px; backdrop-filter: blur(6px); }
+.back-link:hover{ border-color: var(--accent-movie); color: var(--accent-movie); }
+
+.movie-hero{ position:relative; min-height:62vh; display:flex; align-items:flex-end; background-size:cover; background-position:center; padding:0 44px 40px; }
+.movie-hero::before{ content:''; position:absolute; inset:0; background: linear-gradient(0deg, var(--bg) 0%, rgba(14,11,8,.35) 45%, rgba(14,11,8,.15) 100%), linear-gradient(180deg, rgba(14,11,8,.85) 0%, transparent 30%); }
+.movie-hero::after{ content:''; position:absolute; inset:0; pointer-events:none; background: radial-gradient(ellipse 55% 60% at 100% 0%, color-mix(in srgb, var(--accent-movie) 30%, transparent), transparent 70%); }
+.movie-hero-content{ position:relative; max-width:760px; }
+.movie-title{ font-size:clamp(46px,8vw,92px); line-height:.95; text-shadow:0 4px 30px rgba(0,0,0,.5); }
+.movie-subline{ margin-top:14px; font-size:13px; letter-spacing:.08em; color:var(--ink-dim); display:flex; gap:10px; flex-wrap:wrap; }
+.movie-subline .dot::before{ content:'|'; margin-right:10px; opacity:.4; }
+.movie-body{ max-width:1100px; margin:0 auto; padding:40px 44px 10px; }
+.movie-divider{ height:1px; background:var(--line); margin-bottom:34px; }
+.movie-main{ display:grid; grid-template-columns:140px 1fr auto; gap:30px; align-items:start; margin-bottom:50px; }
+.movie-poster-mini{ width:140px; aspect-ratio:2/3; border-radius:4px; overflow:hidden; border:1px solid var(--line); box-shadow:0 12px 26px rgba(0,0,0,.4); }
+.movie-poster-mini img{ width:100%; height:100%; object-fit:cover; display:block; }
+.movie-credits .label{ font-size:11px; color:var(--accent-movie); letter-spacing:.06em; margin-bottom:4px; }
+.movie-credits p{ font-size:14px; margin-bottom:12px; }
+.movie-credits .sinopsis{ color:var(--ink-dim); line-height:1.65; max-width:520px; margin-bottom:16px; }
+.genre-pills{ display:flex; gap:8px; flex-wrap:wrap; }
+.genre-pill{ font-size:12px; padding:6px 16px; border-radius:30px; border:1px solid var(--line); color:var(--ink-dim); }
+.rating-ring{ width:84px; height:84px; border-radius:50%; border:3px solid var(--accent-movie); display:flex; align-items:center; justify-content:center; flex-direction:column; box-shadow:0 0 24px color-mix(in srgb, var(--accent-movie) 45%, transparent); }
+.rating-ring .num{ font-family:'Anton',sans-serif; font-size:26px; } .rating-ring .lbl{ font-size:8px; letter-spacing:.1em; color:var(--ink-dim); margin-top:2px; }
+.play-btn{ display:inline-flex; align-items:center; gap:10px; margin-top:22px; padding:13px 26px; border-radius:3px; border:none; background:var(--accent-movie); color:#0E0B08; font-weight:700; font-size:14px; transition: filter .2s ease, transform .2s ease; }
+.play-btn:hover{ filter:brightness(1.12); transform: translateY(-1px); }
+.play-btn:disabled{ opacity:.4; cursor:not-allowed; }
+.gallery-label{ text-align:center; font-size:12px; letter-spacing:.28em; color:var(--accent-movie); margin-bottom:20px; }
+.gallery-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:4px; margin-bottom:44px; }
+.gallery-grid img{ width:100%; aspect-ratio:4/3; object-fit:cover; display:block; }
+.movie-quote{ text-align:center; font-size:clamp(16px,2.2vw,22px); font-style:italic; max-width:640px; margin:0 auto 60px; line-height:1.5; }
+.movie-quote::before,.movie-quote::after{ color:var(--accent-movie); }
+
+.modal-backdrop{ position:fixed; inset:0; background:rgba(4,3,2,.9); z-index:200; display:none; align-items:center; justify-content:center; padding:20px; }
+.modal-backdrop.show{ display:flex; }
+.player-modal{ width:min(920px,100%); background:#000; border-radius:6px; overflow:hidden; position:relative; border:1px solid var(--line); }
+.player-frame{ position:relative; width:100%; aspect-ratio:16/9; }
+.player-frame iframe{ position:absolute; inset:0; width:100%; height:100%; border:0; }
+.close-x{ position:absolute; top:14px; right:14px; z-index:2; width:34px; height:34px; border-radius:50%; border:1px solid rgba(255,255,255,.25); background:rgba(0,0,0,.55); color:#fff; font-size:16px; }
+
+.api-banner{ background:#1A1512; border-bottom:1px solid var(--line); color:var(--ink-dim); font-size:12px; padding:9px 44px; text-align:center; }
+.api-banner strong{ color:var(--accent); }
+
+@media (max-width:720px){
+  .movie-main{ grid-template-columns:1fr; } .movie-poster-mini{ width:110px; } .rating-ring{ order:-1; }
+  .gallery-grid{ grid-template-columns:repeat(2,1fr); } .movie-hero{ padding:0 18px 30px; } .movie-body{ padding:34px 18px 10px; }
+}
+@media (max-width:640px){
+  header.site{ padding:14px 18px; } .row-head{ padding:0 18px; } .row-track{ padding:6px 18px 18px; }
+  .poster-card{ flex-basis:130px; } footer.site{ padding:22px 18px; flex-direction:column; gap:8px; } .api-banner{ padding:9px 18px; }
+}
+</style>
+</head>
+<body>
+
+<div class="kernel-loader" id="loader">
+  <svg class="kernel-iris" viewBox="0 0 100 100" fill="none">
+    <g class="iris-blade">
+      <circle cx="50" cy="50" r="46" stroke="#D9A441" stroke-width="1.4" opacity="0.35"/>
+      <circle cx="50" cy="50" r="34" stroke="#D9A441" stroke-width="1.4" opacity="0.55"/>
+      <path d="M50 8 L58 30 L50 50 L42 30 Z" fill="#D9A441"/>
+      <path d="M92 50 L70 58 L50 50 L70 42 Z" fill="#D9A441"/>
+      <path d="M50 92 L42 70 L50 50 L58 70 Z" fill="#D9A441"/>
+      <path d="M8 50 L30 42 L50 50 L30 58 Z" fill="#D9A441"/>
+      <circle cx="50" cy="50" r="7" fill="#0E0B08" stroke="#D9A441" stroke-width="1.4"/>
+    </g>
+  </svg>
+  <div class="kernel-wordmark">KERNEL</div>
+  <div class="kernel-status mono" id="loaderStatus">cargando catálogo…</div>
+</div>
+
+<div id="app"></div>
+
+<div class="modal-backdrop" id="playerBackdrop">
+  <div class="player-modal">
+    <div class="player-frame">
+      <button class="close-x" id="closePlayer">✕</button>
+      <iframe id="playerIframe" allow="autoplay; fullscreen" allowfullscreen></iframe>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================================================
+// KERNEL — test de un solo archivo
+//
+// Esto simula cómo va a quedar dividido el sitio real (para GitHub Pages):
+//   /index.html            → shell + router simple (home / ficha)
+//   /css/kernel.css        → todo el <style> de acá
+//   /js/config.js          → const OMDB_API_KEY (la única línea que vas a tocar)
+//   /js/catalogo.js        → toda la lógica de abajo (fetch OMDb, render, drive)
+//   /data/peliculas.json   → el array CATALOGO_LOCAL de acá abajo, como JSON puro
+//
+// Vos vas a editar SOLO /data/peliculas.json cuando quieras sumar una película.
+// Cada entrada nueva necesita como mínimo: slug, imdbId, categoria, colorAmbiente.
+// Todo lo demás (director, reparto, sinopsis, año, duración, poster, género,
+// rating) lo trae OMDb automáticamente con ese imdbId.
+// ============================================================================
+
+// 👉 PASO 1: cuando tengas la key de OMDb (http://www.omdbapi.com/apikey.aspx),
+// pegala acá adentro de las comillas. Con esto vacío, el sitio funciona igual
+// pero usando los datos de "fallback" de cada película (modo demo offline).
+const OMDB_API_KEY = "";
+
+// Campos que OMDb NO tiene y que vos cargás a mano por película:
+//   slug          → url amigable
+//   imdbId        → el "ttXXXXXXX" de la página de IMDb de la película
+//   categoria     → define en qué fila del home aparece
+//   colorAmbiente → el color de ambientación de la ficha
+//   video         → link de Google Drive del archivo de video
+//   galeria       → stills / capturas propias (OMDb solo da 1 poster)
+//   cita          → frase destacada que aparece al pie de la ficha
+//   fallback      → copia de los datos de OMDb para que el demo funcione sin key
+const CATALOGO_LOCAL = [
+  {
+    slug: "whiplash", imdbId: "tt2582802", categoria: "Drama",
+    colorAmbiente: "#8A5A2B",
+    backdrop: "https://images.unsplash.com/photo-1511192336575-5a79af67a629?q=80&w=1600&auto=format&fit=crop",
+    video: "",
+    galeria: [
+      "https://images.unsplash.com/photo-1519892300165-cb5542fb47c7?q=80&w=500&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1516307365426-bea591f05011?q=80&w=500&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?q=80&w=500&auto=format&fit=crop"
+    ],
+    cita: "El camino a la grandeza te puede llevar al límite.",
+    fallback: {
+      titulo:"Whiplash", anio:"2014", duracion:"1h 47m", clasificacion:"16+", idioma:"Inglés",
+      director:"Damien Chazelle", reparto:"Miles Teller, J.K. Simmons, Paul Reiser",
+      sinopsis:"Andrew ingresa a un conservatorio de música para convertirse en baterista. Pero es guiado por Terence Fletcher, cuyos métodos de entrenamiento poco convencionales lo empujan más allá de los límites de la razón y la sensatez.",
+      generos:["Drama","Música"], rating:8.5,
+      poster:"https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?q=80&w=500&auto=format&fit=crop"
+    }
+  },
+  {
+    slug: "ruta-47", imdbId: "tt0000000", categoria: "Acción",
+    colorAmbiente: "#2B5A6B",
+    backdrop: "https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?q=80&w=1600&auto=format&fit=crop",
+    video: "",
+    galeria: [
+      "https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?q=80&w=500&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1502877338535-766e1452684a?q=80&w=500&auto=format&fit=crop"
+    ],
+    cita: "No hay vuelta atrás en esta ruta.",
+    fallback: {
+      titulo:"Ruta 47", anio:"2021", duracion:"2h 05m", clasificacion:"16+", idioma:"Español",
+      director:"Ejemplo Director", reparto:"Actor Uno, Actor Dos",
+      sinopsis:"Título de ejemplo para mostrar cómo luce una segunda fila del catálogo.",
+      generos:["Acción","Thriller"], rating:7.8,
+      poster:"https://images.unsplash.com/photo-1440404653325-ab127d49abc1?q=80&w=500&auto=format&fit=crop"
+    }
+  },
+  {
+    slug: "cinema-perdido", imdbId: "tt0000001", categoria: "Drama",
+    colorAmbiente: "#C24B2E",
+    backdrop: "https://images.unsplash.com/photo-1517604931442-7e0c8ed2963c?q=80&w=1600&auto=format&fit=crop",
+    video: "",
+    galeria: [
+      "https://images.unsplash.com/photo-1517604931442-7e0c8ed2963c?q=80&w=500&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?q=80&w=500&auto=format&fit=crop"
+    ],
+    cita: "Algunas películas nunca terminan de proyectarse.",
+    fallback: {
+      titulo:"Cinema Perdido", anio:"2025", duracion:"1h 58m", clasificacion:"13+", idioma:"Español",
+      director:"Nombre Directorx", reparto:"Actriz Principal, Actor Secundario",
+      sinopsis:"Un proyeccionista descubre una bobina olvidada en el sótano de un cine a punto de cerrar, y con ella, un secreto familiar que cambia todo lo que creía saber de su padre.",
+      generos:["Drama","Misterio"], rating:8.1,
+      poster:"https://images.unsplash.com/photo-1478720568477-152d9b164e26?q=80&w=500&auto=format&fit=crop&sat=-20"
+    }
+  }
+];
+
+// --- OMDb: pide los datos de una película por imdbId y los deja en el mismo
+// formato que usa el resto del sitio. Si falla (sin key, sin internet, id
+// inválido) devuelve null y el catálogo usa el "fallback" de esa entrada.
+async function fetchOmdb(imdbId){
+  if(!OMDB_API_KEY || !imdbId) return null;
+  try{
+    const res = await fetch(`https://www.omdbapi.com/?apikey=${OMDB_API_KEY}&i=${imdbId}&plot=full`);
+    const data = await res.json();
+    if(data.Response === "False") { console.warn("OMDb:", data.Error, imdbId); return null; }
+    return {
+      titulo: data.Title, anio: data.Year, duracion: data.Runtime,
+      clasificacion: data.Rated, idioma: (data.Language||"").split(",")[0].trim(),
+      director: data.Director, reparto: data.Actors, sinopsis: data.Plot,
+      generos: (data.Genre||"").split(",").map(g=>g.trim()).filter(Boolean),
+      rating: data.imdbRating !== "N/A" ? parseFloat(data.imdbRating) : null,
+      poster: data.Poster !== "N/A" ? data.Poster : null
+    };
+  }catch(err){ console.warn("OMDb fetch falló para", imdbId, err); return null; }
+}
+
+// --- Arma el catálogo final combinando cada entrada local con OMDb (o el
+// fallback si OMDb no respondió). Esta es la función que reemplazaría al
+// fetch('data/peliculas.json') del sitio dividido en archivos.
+async function buildCatalogo(){
+  const results = await Promise.all(CATALOGO_LOCAL.map(async entry => {
+    const omdb = await fetchOmdb(entry.imdbId);
+    const datos = omdb || entry.fallback;
+    return {
+      slug: entry.slug, categoria: entry.categoria, colorAmbiente: entry.colorAmbiente,
+      backdrop: entry.backdrop, video: entry.video, galeria: entry.galeria, cita: entry.cita,
+      fuente: omdb ? "omdb" : "demo",
+      ...datos
+    };
+  }));
+  return results;
+}
+
+function extractDriveId(url){
+  if(!url) return null;
+  const patterns=[/\/file\/d\/([a-zA-Z0-9_-]+)/,/[?&]id=([a-zA-Z0-9_-]+)/,/\/d\/([a-zA-Z0-9_-]+)/];
+  for(const p of patterns){ const m=url.match(p); if(m) return m[1]; }
+  return null;
+}
+function toDriveEmbed(url){ const id=extractDriveId(url); return id ? `https://drive.google.com/file/d/${id}/preview` : url; }
+
+function openPlayer(videoUrl){
+  const iframe = document.getElementById('playerIframe');
+  iframe.src = videoUrl ? toDriveEmbed(videoUrl) : '';
+  document.getElementById('playerBackdrop').classList.add('show');
+  if(!videoUrl) alert('Esta película todavía no tiene link de Google Drive cargado.');
+}
+document.getElementById('closePlayer').onclick = () => {
+  document.getElementById('playerBackdrop').classList.remove('show');
+  document.getElementById('playerIframe').src = '';
+};
+document.getElementById('playerBackdrop').addEventListener('click', e => {
+  if(e.target.id === 'playerBackdrop'){ e.currentTarget.classList.remove('show'); document.getElementById('playerIframe').src=''; }
+});
+
+const irisSVG = `<svg viewBox="0 0 100 100" fill="none">
+  <circle cx="50" cy="50" r="46" stroke="#D9A441" stroke-width="2" opacity="0.35"/>
+  <circle cx="50" cy="50" r="34" stroke="#D9A441" stroke-width="2" opacity="0.55"/>
+  <path d="M50 8 L58 30 L50 50 L42 30 Z" fill="#D9A441"/>
+  <path d="M92 50 L70 58 L50 50 L70 42 Z" fill="#D9A441"/>
+  <path d="M50 92 L42 70 L50 50 L58 70 Z" fill="#D9A441"/>
+  <path d="M8 50 L30 42 L50 50 L30 58 Z" fill="#D9A441"/>
+  <circle cx="50" cy="50" r="7" fill="#0E0B08" stroke="#D9A441" stroke-width="2"/>
+</svg>`;
+
+function groupByCategory(list){
+  const map = {};
+  list.forEach(m => { const c = m.categoria || 'General'; (map[c] = map[c] || []).push(m); });
+  return map;
+}
+
+let CATALOGO = [];
+
+// --- Vista: HOME ---
+function renderHome(){
+  const grouped = groupByCategory(CATALOGO);
+  let rows = '';
+  Object.keys(grouped).forEach(cat => {
+    const cards = grouped[cat].map(m => `
+      <a href="#" class="poster-card" data-slug="${m.slug}">
+        <span class="omdb-tag mono">${m.fuente === 'omdb' ? 'OMDb' : 'DEMO'}</span>
+        <img src="${m.poster}" alt="${m.titulo}" loading="lazy">
+        <button class="poster-play" data-video="${m.video || ''}">▶</button>
+        <div class="poster-overlay"><h3>${m.titulo}</h3><div class="meta mono">${m.anio}</div></div>
+      </a>
+    `).join('');
+    rows += `
+      <div class="row">
+        <div class="row-head"><h2>${cat}</h2><span class="count mono">${grouped[cat].length} título${grouped[cat].length>1?'s':''}</span></div>
+        <div class="row-track">${cards}</div>
+      </div>
+    `;
+  });
+
+  document.getElementById('app').innerHTML = `
+    ${!OMDB_API_KEY ? `<div class="api-banner mono">Modo demo — sin <strong>OMDB_API_KEY</strong> cargada, mostrando datos de fallback. Pegala en la línea marcada del script para traer datos reales.</div>` : ''}
+    <header class="site">
+      <div class="brand" id="logoHome">${irisSVG}<span>KERNEL</span></div>
+      <span class="demo-badge mono">vista previa — test un solo archivo</span>
+    </header>
+    <main style="padding-top:14px; padding-bottom:60px;">${rows}</main>
+    <footer class="site">
+      <span class="mono">KERNEL — catálogo personal</span>
+      <span class="mono">${CATALOGO.length} títulos</span>
+    </footer>
+  `;
+
+  document.querySelectorAll('.poster-card').forEach(card => {
+    card.addEventListener('click', e => {
+      e.preventDefault();
+      renderDetail(card.dataset.slug);
+      window.scrollTo(0,0);
+    });
+  });
+  document.querySelectorAll('.poster-play').forEach(btn => {
+    btn.addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); openPlayer(btn.dataset.video); });
+  });
+}
+
+// --- Vista: FICHA DE PELÍCULA ---
+function renderDetail(slug){
+  const m = CATALOGO.find(x => x.slug === slug);
+  if(!m) return renderHome();
+  document.documentElement.style.setProperty('--accent-movie', m.colorAmbiente || '#D9A441');
+
+  const generos = (m.generos||[]).map(g => `<span class="genre-pill">${g}</span>`).join('');
+  const galeria = (m.galeria||[]).map(src => `<img src="${src}" alt="${m.titulo}" loading="lazy">`).join('');
+
+  document.getElementById('app').innerHTML = `
+    <a href="#" class="back-link" id="backLink">← Catálogo</a>
+    <section class="movie-hero" style="background-image:url('${m.backdrop || m.poster}')">
+      <div class="movie-hero-content">
+        <h1 class="movie-title poster-font">${m.titulo}</h1>
+        <div class="movie-subline mono">
+          <span>${m.anio||''}</span><span class="dot"></span><span>${m.clasificacion||'—'}</span>
+          <span class="dot"></span><span>${m.duracion||''}</span><span class="dot"></span><span>Idioma: ${m.idioma||'—'}</span>
+        </div>
+      </div>
+    </section>
+    <div class="movie-body">
+      <div class="movie-divider"></div>
+      <div class="movie-main">
+        <div class="movie-poster-mini"><img src="${m.poster}" alt="Afiche de ${m.titulo}"></div>
+        <div class="movie-credits">
+          <div class="label mono">DIR. ${m.director||'—'}</div>
+          <p><strong>Reparto:</strong> ${m.reparto||'—'}</p>
+          <p class="sinopsis">${m.sinopsis||''}</p>
+          <div class="genre-pills">${generos}</div>
+          <button class="play-btn" id="playBtn" ${!m.video ? 'disabled' : ''}>▶ Reproducir</button>
+        </div>
+        <div class="rating-ring"><div class="num poster-font">${m.rating ?? '—'}</div><div class="lbl mono">KERNEL</div></div>
+      </div>
+      ${galeria ? `<div class="gallery-label mono">GALERÍA</div><div class="gallery-grid">${galeria}</div>` : ''}
+      ${m.cita ? `<div class="movie-quote">"${m.cita}"</div>` : ''}
+    </div>
+  `;
+
+  document.getElementById('backLink').addEventListener('click', e => { e.preventDefault(); renderHome(); window.scrollTo(0,0); });
+  document.getElementById('playBtn').addEventListener('click', () => openPlayer(m.video));
+}
+
+// --- Arranque ---
+const loader = document.getElementById('loader');
+const loaderStatus = document.getElementById('loaderStatus');
+const startedAt = Date.now();
+
+buildCatalogo().then(list => {
+  CATALOGO = list;
+  loaderStatus.textContent = OMDB_API_KEY ? 'catálogo listo (OMDb)' : 'catálogo listo (demo)';
+  renderHome();
+  const elapsed = Date.now() - startedAt;
+  const remaining = Math.max(0, 1300 - elapsed); // deja que se vea la animación del iris igual
+  setTimeout(() => loader.classList.add('hide'), remaining);
+}).catch(err => {
+  console.error('Error armando el catálogo:', err);
+  loaderStatus.textContent = 'error cargando — ver consola';
+  setTimeout(() => loader.classList.add('hide'), 1500);
+});
+</script>
+</body>
+</html>
