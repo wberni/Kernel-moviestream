@@ -4,7 +4,7 @@ const CATALOGO = [
     cita: "Say hello to my little friend.",
     imdbId: "tt0086250",
     categoria: "Clásicos",
-    video: "",
+    video: "https://www.lookmovie2.to/movies/play/1689756702-scarface-1983",
     posterFallback: "https://images.unsplash.com/photo-1517604931442-7e0c8ed2963c?q=80&w=500&auto=format&fit=crop",
     backdropFallback: "https://images.unsplash.com/photo-1517604931442-7e0c8ed2963c?q=80&w=1600&auto=format&fit=crop"
   },
@@ -13,7 +13,7 @@ const CATALOGO = [
     cita: "Life is like a box of chocolates, you never know what you're gonna get.",
     imdbId: "tt0109830",
     categoria: "Drama",
-    video: "",
+    video: "https://www.lookmovie2.to/movies/play/1689756706-forrest-gump-1994",
     posterFallback: "https://images.unsplash.com/photo-1502920917128-1aa500764cbd?q=80&w=500&auto=format&fit=crop",
     backdropFallback: "https://images.unsplash.com/photo-1502920917128-1aa500764cbd?q=80&w=1600&auto=format&fit=crop"
   },
@@ -22,7 +22,7 @@ const CATALOGO = [
     cita: "Good morning, and in case I don't see ya: good afternoon, good evening, and good night.",
     imdbId: "tt0120382",
     categoria: "Drama",
-    video: "",
+    video: "https://www.lookmovie2.to/movies/play/1689756708-the-truman-show-1998",
     posterFallback: "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?q=80&w=500&auto=format&fit=crop",
     backdropFallback: "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?q=80&w=1600&auto=format&fit=crop"
   },
@@ -31,7 +31,7 @@ const CATALOGO = [
     cita: "Fidelio.",
     imdbId: "tt0120730",
     categoria: "Drama",
-    video: "",
+    video: "https://dn600309.us.archive.org/0/items/eyes-wide-shut-tom-cruise-nicole-kidman-sydney-pollack-director-stalnley-kubrick/EYES%20WIDE%20SHUT%20-%20Tom%20Cruise%20Nicole%20Kidman%20Sydney%20Pollack%20-%20Director%20Stalnley%20Kubrick%20%28his%20last%20film%20direction%29%20-%20Based%20on%20the%20novella%20Traumnovelle%20%28Dream%20Story%29%20by%20Arthur%20Schnitzler.m4v",
     posterFallback: "https://images.unsplash.com/photo-1518998053901-5348d3961a04?q=80&w=500&auto=format&fit=crop",
     backdropFallback: "https://images.unsplash.com/photo-1518998053901-5348d3961a04?q=80&w=1600&auto=format&fit=crop"
   },
