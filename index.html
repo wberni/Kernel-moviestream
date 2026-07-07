@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kernel — Test con API de TMDb</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Abril+Fatface&family=Anton&family=Inter:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div class="kernel-loader" id="loader">
+  <svg class="kernel-iris" viewBox="0 0 100 100" fill="none">
+    <g class="iris-blade">
+      <circle cx="50" cy="50" r="46" stroke="#D9A441" stroke-width="1.4" opacity="0.35"/>
+      <circle cx="50" cy="50" r="34" stroke="#D9A441" stroke-width="1.4" opacity="0.55"/>
+      <path d="M50 8 L58 30 L50 50 L42 30 Z" fill="#D9A441"/>
+      <path d="M92 50 L70 58 L50 50 L70 42 Z" fill="#D9A441"/>
+      <path d="M50 92 L42 70 L50 50 L58 70 Z" fill="#D9A441"/>
+      <path d="M8 50 L30 42 L50 50 L30 58 Z" fill="#D9A441"/>
+      <circle cx="50" cy="50" r="7" fill="#0E0B08" stroke="#D9A441" stroke-width="1.4"/>
+    </g>
+  </svg>
+  <div class="kernel-wordmark">KERNEL</div>
+</div>
+
+<div id="app"></div>
+
+<div class="modal-backdrop" id="playerBackdrop">
+  <div class="player-modal">
+    <div class="player-modal-bar">
+      <div class="player-modal-info">
+        <span class="player-modal-tag mono" id="playerTag">REPRODUCIENDO</span>
+        <span class="player-modal-title poster-font" id="playerTitle"></span>
+      </div>
+      <button class="close-x" id="closePlayer">✕</button>
+    </div>
+    <div class="player-frame">
+      <div class="player-loading" id="playerLoading"><span class="spin"></span></div>
+      <div class="player-fallback" id="playerFallback">
+        <p>Este tráiler no se puede reproducir acá adentro (el dueño del video desactivó la reproducción incrustada en otras webs).</p>
+        <a id="playerFallbackLink" href="#" target="_blank" rel="noopener">Abrirlo en YouTube ↗</a>
+      </div>
+      <div id="playerMount"></div>
+    </div>
+  </div>
+</div>
+
+<script src="js/catalogo.js"></script>
+<script src="js/config.js"></script>
+<script src="js/tmdb.js"></script>
+<script src="js/colores.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
