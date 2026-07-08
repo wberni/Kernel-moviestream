@@ -170,6 +170,30 @@ const CATALOGO = [
     backdropFallback: "https://images.unsplash.com/photo-1519892300165-cb5542fb47c7?q=80&w=1600&auto=format&fit=crop"
   },
   {
+    titulo: "Sleepers", anio: "1996",
+    imdbId: "tt0117665",
+    categoria: "Drama",
+    video: "",
+    posterFallback: "https://images.unsplash.com/photo-1479142506502-19b3a3b7ff33?q=80&w=500&auto=format&fit=crop",
+    backdropFallback: "https://images.unsplash.com/photo-1479142506502-19b3a3b7ff33?q=80&w=1600&auto=format&fit=crop"
+  },
+  {
+    titulo: "Her", anio: "2013",
+    imdbId: "tt1798709",
+    categoria: "Ciencia ficción",
+    video: "",
+    posterFallback: "https://images.unsplash.com/photo-1520333789090-73ee2f5f44f9?q=80&w=500&auto=format&fit=crop",
+    backdropFallback: "https://images.unsplash.com/photo-1520333789090-73ee2f5f44f9?q=80&w=1600&auto=format&fit=crop"
+  },
+  {
+    titulo: "El Pianista", anio: "2002",
+    imdbId: "tt0253474",
+    categoria: "Bélica",
+    video: "",
+    posterFallback: "https://images.unsplash.com/photo-1520523839897-bd0b52f945a0?q=80&w=500&auto=format&fit=crop",
+    backdropFallback: "https://images.unsplash.com/photo-1520523839897-bd0b52f945a0?q=80&w=1600&auto=format&fit=crop"
+  }
+  {
     titulo: "Una vida oculta", anio: "2019",
     imdbId: "tt5827916",
     categoria: "Drama",
