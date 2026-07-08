@@ -35,9 +35,30 @@ function cerrarModal(){
 function openPlayer(videoUrl, titulo){
   if(!videoUrl){ alert('Esta película todavía no tiene link de Google Drive cargado en el campo "video" de catalogo.js'); return; }
   mostrarModal(titulo, 'REPRODUCIENDO');
-  document.getElementById('playerLoading').style.display = 'flex';
+  const driveId = extractDriveId(videoUrl);
   const mount = document.getElementById('playerMount');
-  mount.innerHTML = `<iframe src="${toDriveEmbed(videoUrl)}" allow="autoplay; fullscreen" allowfullscreen onload="document.getElementById('playerLoading').style.display='none'"></iframe>`;
+  const fallback = document.getElementById('playerFallback');
+  const fallbackLink = document.getElementById('playerFallbackLink');
+
+  if(driveId){
+    // Google Drive sí permite incrustarse en un <iframe> (usando /preview).
+    document.getElementById('playerLoading').style.display = 'flex';
+    mount.innerHTML = `<iframe src="https://drive.google.com/file/d/${driveId}/preview" allow="autoplay; fullscreen" allowfullscreen onload="document.getElementById('playerLoading').style.display='none'"></iframe>`;
+    return;
+  }
+
+  // Los sitios de streaming (lookmovie, archive.org, etc.) casi siempre
+  // bloquean que los metan en un <iframe> de otra web (header
+  // X-Frame-Options / Content-Security-Policy: frame-ancestors), así que
+  // meterlos ahí adentro se queda en blanco o directo no carga.
+  // En vez de mostrar una pantalla rota, abrimos el link en una pestaña
+  // nueva y avisamos.
+  document.getElementById('playerLoading').style.display = 'none';
+  fallbackLink.href = videoUrl;
+  fallbackLink.textContent = 'Abrirlo en la web ↗';
+  fallback.querySelector('p').textContent = 'Este sitio no permite reproducirse dentro de otra web (bloquea la incrustación). Lo abrimos en una pestaña aparte.';
+  fallback.classList.add('show');
+  window.open(videoUrl, '_blank', 'noopener');
 }
 
 // ---- Tráiler: usa la API oficial de YouTube para poder DETECTAR cuando
@@ -69,9 +90,11 @@ function openTrailerModal(trailerId, titulo){
   const mount = document.getElementById('playerMount');
   const fallbackLink = document.getElementById('playerFallbackLink');
   fallback.classList.remove('show');
+  fallback.querySelector('p').textContent = 'Este tráiler no se puede reproducir acá adentro (el dueño del video desactivó la reproducción incrustada en otras webs).';
   loading.style.display = 'flex';
   mount.innerHTML = '<div id="ytMount" style="position:absolute;inset:0;"></div>';
   fallbackLink.href = `https://www.youtube.com/watch?v=${trailerId}`;
+  fallbackLink.textContent = 'Abrirlo en YouTube ↗';
 
   cargarYouTubeAPI().then(() => {
     ytPlayerActual = new YT.Player('ytMount', {
